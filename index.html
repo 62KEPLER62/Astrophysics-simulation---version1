@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gercekci fizik simulation</title>
+</head>
+<style>
+    body {
+        background-color: gray;
+    }
+
+    canvas {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        left: 50%;
+        top: 50%;
+        background-color: gray;
+        border: 1px solid black;
+    }
+</style>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+
+        //options
+        let trail = false;
+        let hiz = 1;
+
+        const g = 1; //değiştirmek mantıklı değil
+
+        let id = 0;
+        let planets = [];
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth - 10;
+        canvas.height = window.innerHeight - 10;
+
+        function dist(o1, o2) {
+            return Math.sqrt((o1.x - o2.x) * (o1.x - o2.x) + (o1.y - o2.y) * (o1.y - o2.y));
+        }
+
+
+        class Planet {
+
+            constructor(x, y, mass, speedX, speedY, sabit, color) {
+                this.sabit = sabit;
+                this.id = id++;
+                this.x = x;
+                this.y = y;
+                this.mass = mass;
+                this.speedX = speedX;
+                this.speedY = speedY;
+                this.color = color;
+                if (this.sabit) {
+                    this.speedX = 0;
+                    this.speedY = 0;
+                }
+            }
+
+            applyPhysics() {
+                let forceX = 0;
+                let forceY = 0;
+                for (let planet of planets) {
+                    if (planet.id != this.id && this.sabit != true) {
+                        if (dist(this, planet) <= Math.sqrt(this.mass) + Math.sqrt(planet.mass)) {
+                            let sbt = undefined;
+                            if (this.sabit || planet.sabit) {
+                                sbt = true;
+                            }
+                            let momentumX1 = this.mass * this.speedX;
+                            let momentumX2 = planet.mass * planet.speedX;
+                            let momentumY1 = this.mass * this.speedY;
+                            let momentumY2 = planet.mass * planet.speedY;
+                            let tmomentumX = momentumX1 + momentumX2;
+                            let tmomentumY = momentumY1 + momentumY2;
+                            let yenihizx = tmomentumX / (this.mass + planet.mass);
+                            let yenihizy = tmomentumY / (this.mass + planet.mass);
+                            let ortaX = (this.x + planet.x) / 2;
+                            let ortaY = (this.y + planet.y) / 2;
+                            if (this.sabit) {
+                                ortaX = this.x;
+                                ortaY = this.y;
+                            }
+                            if (planet.sabit) {
+                                ortaX = planet.x;
+                                ortaY = planet.y;
+                            }
+                            let renk = this.mass >= planet.mass ? this.color : planet.color;
+                            let yeni = new Planet(ortaX, ortaY, this.mass + planet.mass, yenihizx, yenihizy, sbt, renk);
+                            for (let i = 0; i < planets.length; i++) {
+                                if (planets[i].id == planet.id) {
+                                    planets.splice(i, 1);
+                                }
+                            }
+                            for (let i = 0; i < planets.length; i++) {
+                                if (planets[i].id == this.id) {
+                                    planets.splice(i, 1);
+                                }
+                            }
+                            planets.push(yeni);
+                        }
+                        let angle = Math.atan2(planet.x - this.x, planet.y - this.y); //açı
+                        let force = g * this.mass * planet.mass / dist(this, planet) / dist(this, planet); // kuvvet
+                        forceX += force * Math.sin(angle);
+                        forceY += force * Math.cos(angle);
+                    }
+                }
+                //bileşke kuvvetler kaldı;
+                let aX = forceX / this.mass; //f=ma (ivme)
+                let aY = forceY / this.mass; //f=ma (ivme)
+                this.speedX += aX;
+                this.speedY += aY;
+                this.x += this.speedX;
+                this.y += this.speedY;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color == undefined ? "black" : this.color; //renk gelicek
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, Math.sqrt(this.mass), 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+        let sayac = 0;
+        hiz = Math.abs(hiz);
+        function animate() {
+            sayac++;
+            if (hiz >= 1) {
+                for (let i = 0; i < hiz; i++) {
+                    if (!trail) {
+                        canvas.width = canvas.width; // canvası sıfırlama
+                    }
+                    for (let planet of planets) {
+                        planet.applyPhysics();
+                        planet.draw();
+                    }
+                }
+            }
+            else {
+                let temp = Math.round(1/hiz);
+                if(sayac%temp==0){
+                    for (let i = 0; i < hiz; i++) {
+                    if (!trail) {
+                        canvas.width = canvas.width; // canvası sıfırlama
+                    }
+                    for (let planet of planets) {
+                        planet.applyPhysics();
+                        planet.draw();
+                    }
+                }
+                sayac = 0;
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        //  planets.push(new Planet(680,450,500,0,0,true));
+
+        //  planets.push(new Planet(500,850,145,0.8,0.4));
+        //  planets.push(new Planet(500,910,5,2.6,0.8));
+
+        // planets.push(new Planet(600,600,100,0,0));
+        // planets.push(new Planet(1000,600,100,0,0));
+
+
+
+
+
+
+           planets.push(new Planet(680,450,500,0,0,true,"black"));
+
+           planets.push(new Planet(500,890,150,0.9,0.2,false,"white"));
+           planets.push(new Planet(500,960,10,2.4,0.2,false,"purple"));
+           planets.push(new Planet(500,840,5,2.5,0.2,false,"cyan"));
+           planets.push(new Planet(500,810,5,2.5,0.2,false,"cyan"));
+           planets.push(new Planet(500,790,5,-0.3,0.7,false,"cyan"));
+
+        // planets.push(new Planet(680, 450, 500, 0, 0, true, "black"));
+        // planets.push(new Planet(680, 500, 10, 3, 0, false, "white"));
+        // planets.push(new Planet(680, 550, 10, 2.2, 0, false, "white"));
+        // planets.push(new Planet(680, 600, 10, 1.8, 0, false, "white"));
+    </script>
+</body>
+
+</html>
+<!-- Made by KEPLER62-->
