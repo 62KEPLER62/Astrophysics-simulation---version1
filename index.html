@@ -114,8 +114,6 @@
                 let aY = forceY / this.mass; //f=ma (ivme)
                 this.speedX += aX;
                 this.speedY += aY;
-                this.x += this.speedX;
-                this.y += this.speedY;
             }
 
             draw() {
@@ -136,23 +134,31 @@
                     }
                     for (let planet of planets) {
                         planet.applyPhysics();
+                    }
+                    for (let planet of planets) {
+                        planet.x += planet.speedX;
+                        planet.y += planet.speedY;
                         planet.draw();
                     }
                 }
             }
             else {
-                let temp = Math.round(1/hiz);
-                if(sayac%temp==0){
+                let temp = Math.round(1 / hiz);
+                if (sayac % temp == 0) {
                     for (let i = 0; i < hiz; i++) {
-                    if (!trail) {
-                        canvas.width = canvas.width; // canvası sıfırlama
+                        if (!trail) {
+                            canvas.width = canvas.width; // canvası sıfırlama
+                        }
+                        for (let planet of planets) {
+                            planet.applyPhysics();
+                        }
+                        for (let planet of planets) {
+                            planet.x += planet.speedX;
+                            planet.y += planet.speedY;
+                            planet.draw();
+                        }
                     }
-                    for (let planet of planets) {
-                        planet.applyPhysics();
-                        planet.draw();
-                    }
-                }
-                sayac = 0;
+                    sayac = 0;
                 }
             }
             requestAnimationFrame(animate);
@@ -172,15 +178,15 @@
 
 
 
-           planets.push(new Planet(680,450,500,0,0,true,"black"));
+        planets.push(new Planet(680, 450, 500, 0, 0, true, "black"));
 
-           planets.push(new Planet(500,890,150,0.9,0.2,false,"white"));
-           planets.push(new Planet(500,960,10,2.4,0.2,false,"purple"));
-           planets.push(new Planet(500,840,5,2.5,0.2,false,"cyan"));
-           planets.push(new Planet(500,810,5,2.5,0.2,false,"cyan"));
-           planets.push(new Planet(500,790,5,-0.3,0.7,false,"cyan"));
+        planets.push(new Planet(680, 890, 200, 0.9, 0.2, false, "white"));
 
-        // planets.push(new Planet(680, 450, 500, 0, 0, true, "black"));
+        planets.push(new Planet(680, 930, 10, 3, 0, false, "orange"));
+
+        planets.push(new Planet(680, 500, 10, 3, 0, false, "blue"));
+
+        planets.push(new Planet(680, 600, 10, 2.2, 1, false, "green"));
         // planets.push(new Planet(680, 500, 10, 3, 0, false, "white"));
         // planets.push(new Planet(680, 550, 10, 2.2, 0, false, "white"));
         // planets.push(new Planet(680, 600, 10, 1.8, 0, false, "white"));
